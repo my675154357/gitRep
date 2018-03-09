@@ -70,3 +70,22 @@ git branch -a    。同时显示本地仓和远程仓的分支信息.
 git checkout -b 本地分支名 origin/远程分支名    。将远程仓的分支下载下来，如果本地没有该分支，则自动创建。并切换到该分支。
 
 git pull  。拉取分支最新的内容(第一次推送分支时会自动将本地仓的分支与远程仓的分支关联，所以pull的时候就无需加分支名)
+
+九、使用eclipse提交到github上的事项
+通常，无论使用svn还是用git，我们都会忽略掉项目中的一些无需提交的文件，例如：.classpath、.settings、/target目录等。我们可以在eclipse设置中进行通用配置忽略；也可以在导航视图中找到项目的.gitignore文件，在里面添加需要忽略的文件。
+但是，实操发现，对于已经提交过的文件是无法进行忽略的。例如：我们第一次提交了全部文件，无任何忽略。此时想要通过配置.gitignore文件，忽略了无用文件后，再次提交把刚刚提交的覆盖，却发现无效。
+原因就是，已经提交过的文件，即已经同步（track）的文件（都会有个黄色的小仓库标记），我们需要删除这些文件的index，从track状态变为untrack状态，执行后会看到项目下所有文件都会带上?标记。然后，再次提交，.gitignore文件中配置的忽略项即会生效。
+具体操作步骤：
+
+git rm -r --cached .      //意思是删除了文件index，从track状态变为untrack状态
+
+git add .             //意思是将当前目录下的所有文件再add到index，注意这时候.gitignore文件就会起作用，里面配置
+
+的文件类型，将不会被add到index。同时文件上也不会出现?这个符号。可以这样理解，凡是在.gitignore中
+
+标记的文件，就会默认为本地文件，跟git无关，无论执行什么git命令，它都不会被执行。
+
+git commit -m"注释：忽略了.gitignore配置的文件"     //意思是commit到本地仓，并加上comment。
+
+tip：注意哦，前两句命令结尾有个实心点（.），一定要加上，命令才有效，我一开始就给忽略了，以为是别人写的句号。
+另外，如果在使用eclipse push到远程仓时，报错信息为cannot open git-upload-pack。解决方法：打开eclipse安装目录下的eclipse.ini添加一句：-Dhttps.protocols=TLSv1,TLSv1.1,TLSv1.2  就可以了。亲测，已解决。
