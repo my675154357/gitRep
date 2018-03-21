@@ -8,7 +8,7 @@ in (1,2,null)可以有null值，但not in 不允许。not in操作符相当于!=
 5.oracle自动开启事务，mysql需要用start transaction开启事务。
 6.sql语句的优化：(1).查询用字段名代替*。(2).where解析的顺序 从右往左 ←。(3).当where和having查询的结果一样时，用where更好。(4).近量使用多表查询，子查询会多次访问数据库，效率低。(5).尽量不要使用集合运算（与并交），会随着集合增多速度变慢。
 
-7.oracle asc排序作用与多个列买，eptno,sal。但desc值作用于离它最近的列，sal。myql中也是这样。
+7.oracle asc排序作用于多个列，eptno,sal。但desc值作用于离它最近的列，sal。myql中也是这样。
 8.null值排序select * from emp order by comm desc nulls last; 因为oracle中null值最大，如果降序想把null放在后面就这么做。
 9.日期可以相减，返回相差的天数，但不允许相加。但日期可以加/减数字。表示向后/前多少天。
 
