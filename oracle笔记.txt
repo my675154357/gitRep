@@ -1,0 +1,109 @@
+1.distinct作用于所有字段，mysql中也一样
+2.oracle列的别名用双引号或不加，字符串、日期常量只能用单引号，用||拼接。字符串大小写敏感，日期格式敏感；mysql对字符串大小写不敏感。
+in (1,2,null)可以有null值，但not in 不允许。not in操作符相当于!= 所有。相当于条件是：a !=1 and a!= 2 and a != null，而a != null永远为false，则整个表达式就为fasle，进而主查询where的条件是false，那么返回的结果永远是null。
+
+3.lsnrctl status(start/stop) 查看oracle端口监听器状态：1521
+
+4.escape '\' 声明一个转义字符'\'。select * from emp where name like '%\_%' escape '\';
+5.oracle自动开启事务，mysql需要用start transaction开启事务。
+6.sql语句的优化：(1).查询用字段名代替*。(2).where解析的顺序 从右往左 ←。(3).当where和having查询的结果一样时，用where更好。(4).近量使用多表查询，子查询会多次访问数据库，效率低。(5).尽量不要使用集合运算（与并交），会随着集合增多速度变慢。
+
+7.oracle asc排序作用与多个列买，eptno,sal。但desc值作用于离它最近的列，sal。myql中也是这样。
+8.null值排序select * from emp order by comm desc nulls last; 因为oracle中null值最大，如果降序想把null放在后面就这么做。
+9.日期可以相减，返回相差的天数，但不允许相加。但日期可以加/减数字。表示向后/前多少天。
+
+months_between（两个日期相差的月数） add_months（向指定日期加上若干月数） next_day（指定日期的下一个日期）
+使用to_char to_date to_number。可以互转，注意： to_char也可以对日期格式化。
+
+10.nvl(val,0)，空值替换，也叫滤空。当val为null时，将被替换成0。
+nvl2(a,b,c) 当a=null，返回c。否则返回b。
+nullif(a,b)  当a=b，返回null，否则返回a。
+coalesce(a,b,c,...) 从左往右返回第一个不为null的值
+
+11.decode()类似于case else，只不过case else是sql99标准，比较繁琐，decode()是oracle特有的。
+select ename,job,sal 涨前,case job when 'president' then sal+1000 when 'manager' then sal+800 else sal+400 end 涨后 from emp;
+select  ename,job,sal 涨前,decode(job,'president',sal+1000,'manager',sal+800,sal+400) 涨后 from emp;
+
+12.组函数avg().sum(),max()等，会自动滤空；可以嵌套滤空函数nvl(comm,0)来屏蔽滤空。
+13.select 语句中，所有未包含在组函数的列，必须包含在group by中。slect a,b,c,count(*) from dual group by a,b,c;
+过滤分组having，在分好组的基础上，将满足having条件的结果显示出来。
+where后面不能使用组函数,avg(),max()...
+14.oracle增强语句，select deptno,job,sum(sal) from emp group by rollup(deptno,job); 类似于mysql中的with rollup。
+报表设置：break on deptno skip 2;（含义：相同的deptno只显示一次，不同的deptno之间跳2行）。取消设置：break on null;
+15.连接查询，from多个表时，where e.deptno=d.deptno，左外连接是where e.deptno=d.deptno(+)，右外连接是where e.deptno(+)=d.deptno。表示当where等式不成立时，一个表数据在另一个表中不存在关联，要想把少的那个显示出来，就在那边加上(+)。
+16.自连接：给一张表起过个别名，将一张表视为多张表，进行连接查询。select e.ename,b.ename from emp e,emp b where e.mgr=b.empno; 但自连接不适合操作大表，笛卡尔积会根据表的函数成指数增长。
+
+17.层次查询。
+oracle遍历树。
+select empno,ename,mgr
+from emp
+connect by 上一层员工=老板
+start with 起始条件
+
+select level,empno,ename,mgr
+from emp
+connect by prior empno=mgr
+start with empno=7839（或者这一句写成：start with mgr is null）
+order by 1（等价于order by level）
+（prior关键字表示上一层，起始条件是，从员工号7839开始，向下遍历这颗树。level、是oracle中的伪列）
+
+18.不可以在group by 后面写子查询；一般不在子查询中排序，但在top-n分析问题中必须对子查询排序；嵌套子查询是先执行子查询，再执行住查询，但相关子查询出外。
+
+19.子查询集合。in：等于集合中任一个元素；any：和集合中任一个元素比；all：和集合中所有的元素比。
+
+20.集合运算：并集（union/union all） 交集（intersect） 差集（minus）。采用第一个集合作为最后的表头，orderb by 永远在最后面。
+
+21.oracle在CRUD时使用 &变量名，类似于jdbc中perparedStatement预编译时的 ? ，起一个值替换的作用，防止sql注入。这个 &的用法非常灵活，可以写在任何替换字符的位置，甚至是表名。
+
+22.表数据插入复制。insert into emp_copy select * from emp; 但是操作海量数据效率就很低了。
+海量数据插入方式：(1).数据泵(PLSQL程序) dbms_datapump(程序包)  (2).SQL*Loader  (3).外部表
+
+23.delete和truncate的区别：(1).delete逐条删除；truncate先摧毁表，再重建。(2).(*重要区别)，delete是DML，可以回滚。truncate是ddl，不可以回滚。(3).deldete不会释放空间，truncate会。(4).delete会产生碎片，truncate不会。(5).delete可以闪回（flashback，一种恢复技术，当commit后无法用rollback恢复，就用闪回） truncate不可以。
+
+去掉碎片：(1).alter table<表名> move; (2).数据导出导入，得到.dmp文件（exp/expdp  imp/impdp）。
+
+mysql中truncate比delete快，但oracle中恰恰相反。原因是：oracle很重要的一个特点是 undo数据（还原数据），即使提交了事务也能还原，因为要做到这个，所以慢，具体待深究。
+
+24.oracle中的事务：
+起始标识：事务中第一条DML语句
+结束标识：提交（显示提交：commit；隐式提交：正常退出、DDL、DCL）。这也解释了为什么DDL、DCL不可以回滚，因为这些语句在执行时就隐式的做了提交。
+回滚：显式：rollback；隐式：非正常退出、掉电、宕机。
+
+25.关于rownum伪列：
+(1).rownum永远按默认排序生成（即为排序查询出来的结果为默认排序）
+(2).rownum只能用 < <=，不能用 > >=。因为rownum永远从1开始，如果写rownum >=2，那么这个条件永远为假。
+
+26.oracle分：标准表、索引表、临时表
+创建标准表：create table <表名>
+创建临时表：create global temporary table <表名>；另外，排序语句会自动产生临时表。
+临时表特点：当事务或者会话结束时，表中的数据会自动删除。
+
+27. 行转列 wm_concat(varchar2) 多行函数。
+
+28. row_id 行地址，也是一个伪列。
+29.使用子查询创建表。create table emp_copy as select * from emp where 1=2; 如果where的条件为fasle，则只会复制表结构；为true，会复制结构和数据。
+也可以这样创建视图,create view...后面一样。
+亲测，这个语句mysql也可以。
+mysql也可以通过 create table emp_copy like emp。区别：as创建不含索引，like含索引，但like不含数据，需要insert或load data 来插入数据。但oracle不支持like，同样，oracle用as创建出来的表也只包含结构。
+
+29.pempno emp.empno%type;引用型变量。引用数据类型。表示pempno的类型是emp.empno的数据类型。
+30.emp_rec emp%rowtype;记录型变量，相当于数组。行数据类型，表示emp_rec的数据类型是结果集的行，相当于一个数组。
+
+31.test_id constant number := 10;定义常量，使用关键字constant。
+
+32.oracle中的例外（就是异常）：
+no_data_found：没有找到数据；
+too_many_rows：select...into语句匹配多个行；
+zero_divide：被零除；
+value_error：算数或转换错误；
+timeout_on_resource：在等待资源时发生超时；
+
+33.开启控制台打印，SET serveroutput on；仅单次会话有效。
+
+34.存储过程不能有返回值，存储函数可以。但是他们都可以通过定义out参数来输出一个或多个返回值。
+原则上：有一个返回值时用存储函数，有0个或多个返回值就用存储过程。
+
+35.oracle中的审计有5种：强制审计、标准审计（配置）、基于值的审计、细粒度审计、管理员审计。
+
+36.触发器可以用来做：数据确认、数据备份和同步、实施复杂的安全性检查、做审计，跟踪表上所做的操作等。
+有for each row [when 条件]。这一句就是行级触发器，否则就是语句级触发器。
