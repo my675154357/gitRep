@@ -89,3 +89,8 @@ git commit -m"注释：忽略了.gitignore配置的文件"     //意思是commit
 
 tip：注意哦，前两句命令结尾有个实心点（.），一定要加上，命令才有效，我一开始就给忽略了，以为是别人写的句号。
 另外，如果在使用eclipse push到远程仓时，报错信息为cannot open git-upload-pack。解决方法：打开eclipse安装目录下的eclipse.ini添加一句：-Dhttps.protocols=TLSv1,TLSv1.1,TLSv1.2  就可以了。亲测，已解决。
+
+十、关于使用idea提交到github
+1.首先参考http://www.mamicode.com/info-detail-2082008.html 安装,ignore插件，重启idea后生效。并将该忽略的配置好。
+2.（选做）再参考http://blog.csdn.net/fengchao2016/article/details/72957945 隐藏掉一些不想显示的文件。生效时的时候idea会卡好一阵子，耐心等待就好。
+3.做好准备工作后就可以提交了，具体的提交步骤参考https://www.cnblogs.com/yiliang9117/p/7999241.html 里面包含了提交、检出、更新，比较详细。
