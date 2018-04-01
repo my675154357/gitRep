@@ -1,0 +1,17 @@
+一、foreach的一个注意点。
+
+	假如有一个查询，通过多个id查询用户信息，参数可能存在下面三种传递方式：
+	1.User queryUsersByIds(Integer[] ids);
+	2.User queryUsersByIds(List<Integer> ids);
+	3.User queryUsersByIds(QueryVo vo);
+
+	那么，
+
+	mybatis中用foreach的collection属值（下面的值均指这个属性值），分下面三种情况：
+	1.参数是用Integer[] ids = new Interger[]; 通过数组直接传递，那么值应该填写 “array”。
+	2.参数是用List<Integer> ids = new ArrayList<>(); 通过list集合传递，那么值应该是 “list”。
+	3.参数是用对象封装。假设有个QueryVo对象，其中有List<Integer> idsList = new ArrayList<>(); 或Integer[] ids = new Interger[]; 的属性。 那么值应该是 “idsList”或者“ids”。
+
+
+	为什么会这样？
+		答：原因在于mybatis的底层，在取参值的时候，并不是用的我们传递进去的参数名，而是它自己 Map map = new HashMap(); 将参数的值依次取出，put到它创建的map中。如果参数是数组型，那么它put的时候就默认用aray作为key；如果参数是list集合，那么它put的时候就默认用list作为key；如果参数是对象，那么它put的时候就会将对象中的集合属性取出，以该属性名作为key。 						然后再将map传递给mapper.xml中。也就是说，mapper.xml中实际是从map中取的值，而不是直接从我们的参数对象中取值。所以，前两种情况，如果collection属值直接写ids，执行就会报错，会提示找不到ids。
