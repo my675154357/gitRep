@@ -1,0 +1,53 @@
+使用idea学习的hibernate。
+第一讲遇到的问题：插入中文乱码。在最开始没整合spring的时候，单纯使用hibernate，idea要求配置一个数据源，就使用idea工具配置data base(参考https://www.cnblogs.com/yangyquin/p/5438248.html)。在创建数据库的时候指定编码方式为uft-8。
+在配置data base时，Url这一栏指定编码方式，如hibernate?useUnicode=true&characterEncoding=UTF-8。另一处在hibernate.cfg.xml中，如jdbc:mysql://127.0.0.1:3306/hibernate?useUnicode=true&amp;characterEncoding=UTF-8（由于xml中&会被转义，所以用&amp;代替&）。第三处是hibernate.cfg.xml配置文件中数据库方言写org.hibernate.dialect.MySQL5Dialect。
+还有就是idea设置，global,project,dedfault三处编码全部选择UTF-8。（经过反复测试，发现乱码的根本原因是idea的问题，控制台打印出来就是乱码的。解决方式百度一下），如果仍然是乱码，建议删除classes目录下（eclipse中）或删除out目录（idea中）或删除target目录（maven工程时），然后重新编译。
+
+实体类创建注意事项：
+	1.持久类提供无参构造方法
+	2.成员变量私有，提供get/set方法
+	3.持久类属尽量使用包装类型（如果某个属性值为null,hibernate赋值的时候无法将null赋	值给基本数据类型）
+	4.持久化类需要提供oid，与数据库的主键对应
+	5.持久化类不要用final修饰（hibernate使用cglib实现动态代理，用final修饰将无法继承	）
+
+主键类型：
+	自然主键（少见）：表中某一业务列满足不重复的特征，该列可以做主键使用。
+	代理主键（常见）：表中没有符合不重复特征的业务列，创建一个没有实际意义的列做主键	（id列）。
+
+对象三种状态：
+	瞬时态：没有id，没有与session关联
+	持久态：有id，与session关联
+	游离态：有id，没有与session关联
+
+事务四种特性：
+	acid：原子性、一致性、隔离性、持久性
+事务并发问题：
+	1.脏读（读另一个事务正在修改中未提交的数据）
+	2.不可重复读（第一次和第二次读同样的数据，但在两次之间存在另一事务修改此数据，造	成两次不一致。这个指另一事务修改列数据，属于行级修改）
+	3.幻/虚读（两次读表的时候，另一事务对此表插入或删除，造成两次读的不一致。属于表		级修改）
+事务隔离级别：
+	读未提交--存在并发问题123
+	读已提交--存在并发问题23，可以解决问题1
+	可重复读（mysql默认隔离级别）--存在问题3，可以解决问题3
+	串行化--没有问题，但效率特别低
+
+inverse属性：
+	在一对多的时候，需要有一方放弃维护（双方的关系由外键维持）关系，如果不放弃的话，双方都维持，那么会造成冗余的sql操作，效率变低。只能是一的一方配置中加inverse=true，inverse表示反转，就是由对方主导，由多的一方维护外键关系。而多的一方是不能放弃主导权的，因为外键存在于多的一方表中，所以要由多的一方维护最好。
+
+	如果一的一方不放弃主导权，删除一的一方数据时，由于从表中引用了它的外键全都会置为null，从表数据不会被删除。
+
+	将来在开发中,如果遇到多对多关系.一定要选择一方放弃维护关系，否则会报错。一般谁来放弃要看业务方向.例如录入员工时,需要为员工指定所属角色.那么业务方向就是由员工维护角色. 角色不需要维护与员工关系.角色放弃维护。
+
+整合spring时，由spring来管理session，需要在web.xml中配置：
+<filter-name>hibernateFilter</filter-name>     
+     <filter-class>
+     	org.springframework.orm.hibernate4.support.OpenSessionInViewFilter 
+     </filter-class>     
+</filter     
+<filter-mapping>     
+     <filter-name>hibernateFilter</filter-name>     
+     <url-pattern>/*</url-pattern>     
+</filter-mapping>
+
+特点：
+	debug或者打印对象，对象名显示有$$符号的，表示该对象是代理对象。
