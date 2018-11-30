@@ -7,7 +7,7 @@ $ git config --global user.email "email@example.com"
 
 二、配置工作区
 在本地新建一个文件夹，并在此处使用git init 命令将文件夹变为git的工作区，之后git将会提交这里的文件。
-查看仓库状态：git status（插曲：在执行git status这个命令时，中文名的文件显示为数字，解决方法：在git安装目录下打开git-bash.exe，执行git config –-global core.quotepath false即可解决）
+查看仓库状态：git status（插曲：在执行git status这个命令时，中文名的文件显示为数字，解决方法：在git安装目录下打开git-bash.exe，执行git config –-global core.quotepath false即可解决）。如果提示：'fatal: not in a git directory'，则在该目录下双击打开git-cmd.exe，执行git config –-global core.quotepath false即可解决。
 
 三、提交
 git add filename(文件名) .将文件从工作区提交到暂存区。
